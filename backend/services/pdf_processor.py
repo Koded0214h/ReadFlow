@@ -1,7 +1,5 @@
 import os
 import pdfplumber
-from PIL import Image
-import io
 from django.core.files.base import ContentFile
 from documents.models import Document, ContentChunk
 
@@ -47,15 +45,16 @@ class PDFProcessor:
                 text = page.extract_text() or ""
                 
                 if text.strip():
-                    # Simple paragraph-based chunking (can be enhanced later)
-                    paragraphs = [p for p in text.split('\n\n') if p.strip()]
+                    # Simple paragraph-based chunking
+                    paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
                     
                     for para in paragraphs:
-                        if para.strip():
+                        if len(para) > 50:  # Only create chunks for substantial content
                             chunks.append({
                                 'chunk_index': chunk_index,
                                 'content_type': ContentChunk.TEXT,
-                                'content': para.strip(),
+                                'content': para,
+                                'reading_time': self.estimate_reading_time(para),
                                 'metadata': {
                                     'page_number': page_num,
                                     'word_count': len(para.split()),
@@ -63,24 +62,13 @@ class PDFProcessor:
                                 }
                             })
                             chunk_index += 1
-                
-                # Extract images (basic implementation)
-                images = page.images
-                for img_index, img in enumerate(images):
-                    # This is a simplified version - would need actual image extraction
-                    chunks.append({
-                        'chunk_index': chunk_index,
-                        'content_type': ContentChunk.IMAGE,
-                        'content': f"Image from page {page_num}",
-                        'metadata': {
-                            'page_number': page_num,
-                            'image_index': img_index,
-                            'position': img
-                        }
-                    })
-                    chunk_index += 1
         
         return chunks
+    
+    def estimate_reading_time(self, text):
+        """Estimate reading time in seconds (average: 200 words per minute)"""
+        word_count = len(text.split())
+        return max(5, int((word_count / 200) * 60))  # Minimum 5 seconds
     
     def create_chunks(self, chunks):
         """Create ContentChunk objects in database"""
