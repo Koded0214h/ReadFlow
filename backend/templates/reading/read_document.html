@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Reading {{ document.title }} - ReadFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Reading Header -->
+    <div class="text-center mb-8 fade-in">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ document.title }}</h1>
+        <div class="flex justify-center items-center space-x-4 text-sm text-gray-600">
+            <span>{{ document.chunks.count }} sections</span>
+            <span>•</span>
+            <span>{{ total_reading_time }} min read</span>
+            <span>•</span>
+            <span>AI Personalized</span>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mb-8">
+        <div class="reading-progress rounded-full"></div>
+    </div>
+
+    <!-- Reading Content -->
+    <div class="space-y-6" id="reading-content">
+        {% for chunk in chunks %}
+        <div class="story-chunk bg-white rounded-xl shadow-sm p-8 fade-in" data-chunk-id="{{ chunk.id }}">
+            <!-- AI Personalization Badge -->
+            {% if forloop.first %}
+            <div class="inline-flex items-center bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 px-3 py-1 rounded-full text-sm mb-4">
+                🤖 AI Personalized for {{ user_interests|join:", " }} readers
+            </div>
+            {% endif %}
+
+            <!-- Content -->
+            <div class="prose prose-lg max-w-none">
+                {{ chunk.content|linebreaks }}
+            </div>
+
+            <!-- Chunk Footer -->
+            <div class="flex justify-between items-center mt-6 pt-4 border-t text-sm text-gray-500">
+                <span>Section {{ forloop.counter }} of {{ chunks|length }}</span>
+                <span>📖 {{ chunk.reading_time }}s read</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Navigation -->
+    <div class="flex justify-between mt-12">
+        <button onclick="previousChunk()" class="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition duration-200">
+            ← Previous
+        </button>
+        <button onclick="nextChunk()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition duration-200">
+            Next →
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentChunk = 0;
+    const chunks = document.querySelectorAll('.story-chunk');
+
+    function showChunk(index) {
+        chunks.forEach((chunk, i) => {
+            chunk.style.display = i === index ? 'block' : 'none';
+        });
+        updateProgress();
+    }
+
+    function nextChunk() {
+        if (currentChunk < chunks.length - 1) {
+            currentChunk++;
+            showChunk(currentChunk);
+        }
+    }
+
+    function previousChunk() {
+        if (currentChunk > 0) {
+            currentChunk--;
+            showChunk(currentChunk);
+        }
+    }
+
+    function updateProgress() {
+        const progress = ((currentChunk + 1) / chunks.length) * 100;
+        document.querySelector('.reading-progress').style.width = progress + '%';
+    }
+
+    // Initialize
+    showChunk(0);
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') nextChunk();
+        if (e.key === 'ArrowLeft') previousChunk();
+    });
+</script>
+{% endblock %}

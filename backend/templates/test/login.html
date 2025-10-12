@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Test User Login API - ReadFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8 px-4">
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="mb-6">
+            <a href="{% url 'test_dashboard' %}" class="text-purple-600 hover:text-purple-800 inline-flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Test Dashboard
+            </a>
+        </div>
+
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Test User Login API</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- API Form -->
+            <div>
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Login Form</h2>
+
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username or Email</label>
+                        <input type="text" id="username" name="username" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="password" name="password" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-purple-600 text-white py-3 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Login
+                    </button>
+                </form>
+
+                <div class="mt-4 text-sm text-gray-600">
+                    <p>Don't have an account? <a href="{% url 'test_register' %}" class="text-purple-600 hover:text-purple-800">Test registration</a></p>
+                </div>
+            </div>
+
+            <!-- API Response -->
+            <div>
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">API Response</h2>
+
+                <div id="responseContainer" class="hidden">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">Status: <span id="responseStatus" class="font-mono"></span></h3>
+                        <div class="bg-gray-100 rounded-md p-4">
+                            <pre id="responseData" class="text-sm text-gray-800 whitespace-pre-wrap font-mono"></pre>
+                        </div>
+                    </div>
+
+                    <div id="tokenInfo" class="hidden">
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">JWT Tokens Stored</h3>
+                        <div class="bg-green-50 border border-green-200 rounded-md p-4">
+                            <p class="text-green-800 text-sm">Access and refresh tokens have been stored in localStorage for use in other API tests.</p>
+                            <button id="viewTokensBtn" class="mt-2 bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">View Tokens</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loadingSpinner" class="hidden flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                    <span class="ml-2 text-gray-600">Sending request...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Details -->
+        <div class="mt-12 bg-gray-50 rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">API Details</h2>
+            <div class="space-y-3">
+                <div>
+                    <strong class="text-gray-700">Endpoint:</strong>
+                    <code class="bg-gray-200 px-2 py-1 rounded text-sm">POST /api/auth/login/</code>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Content-Type:</strong>
+                    <code class="bg-gray-200 px-2 py-1 rounded text-sm">application/json</code>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Required Fields:</strong>
+                    <code class="bg-gray-200 px-2 py-1 rounded text-sm">username, password</code>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Response:</strong>
+                    <span class="text-gray-600">User data + JWT access and refresh tokens</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('submitBtn');
+    const responseContainer = document.getElementById('responseContainer');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const tokenInfo = document.getElementById('tokenInfo');
+
+    // Get form data
+    const formData = new FormData(this);
+    const data = {
+        username: formData.get('username'),
+        password: formData.get('password')
+    };
+
+    // Show loading
+    submitBtn.disabled = true;
+    loadingSpinner.classList.remove('hidden');
+    responseContainer.classList.add('hidden');
+    tokenInfo.classList.add('hidden');
+
+    try {
+        const response = await fetch('/api/auth/login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        const responseData = await response.json();
+
+        // Hide loading
+        loadingSpinner.classList.add('hidden');
+
+        // Show response
+        responseContainer.classList.remove('hidden');
+        document.getElementById('responseStatus').textContent = `${response.status} ${response.statusText}`;
+        document.getElementById('responseData').textContent = JSON.stringify(responseData, null, 2);
+
+        // Color code status
+        const statusElement = document.getElementById('responseStatus');
+        if (response.ok) {
+            statusElement.className = 'font-mono text-green-600';
+            // Store tokens if login successful
+            if (responseData.access && responseData.refresh) {
+                localStorage.setItem('access_token', responseData.access);
+                localStorage.setItem('refresh_token', responseData.refresh);
+                tokenInfo.classList.remove('hidden');
+            }
+        } else {
+            statusElement.className = 'font-mono text-red-600';
+        }
+
+    } catch (error) {
+        loadingSpinner.classList.add('hidden');
+        responseContainer.classList.remove('hidden');
+        document.getElementById('responseStatus').textContent = 'Network Error';
+        document.getElementById('responseStatus').className = 'font-mono text-red-600';
+        document.getElementById('responseData').textContent = `Error: ${error.message}`;
+    }
+
+    submitBtn.disabled = false;
+});
+
+// View tokens functionality
+document.getElementById('viewTokensBtn').addEventListener('click', function() {
+    const accessToken = localStorage.getItem('access_token');
+    const refreshToken = localStorage.getItem('refresh_token');
+
+    alert(`Access Token: ${accessToken}\n\nRefresh Token: ${refreshToken}`);
+});
+</script>
+{% endblock %}

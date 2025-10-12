@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - ReadFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Welcome Section -->
+    <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 text-white mb-8 fade-in">
+        <h1 class="text-3xl font-bold mb-2">Welcome back, {{ user.username }}! 📚</h1>
+        <p class="text-purple-100">Continue your reading journey or discover new stories.</p>
+        
+        <!-- Reading Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            <div class="bg-white bg-opacity-20 p-4 rounded-lg">
+                <p class="text-sm opacity-90">Documents</p>
+                <p class="text-2xl font-bold">{{ documents_count }}</p>
+            </div>
+            <div class="bg-white bg-opacity-20 p-4 rounded-lg">
+                <p class="text-sm opacity-90">Total Reading</p>
+                <p class="text-2xl font-bold">{{ total_reading_time }}min</p>
+            </div>
+            <div class="bg-white bg-opacity-20 p-4 rounded-lg">
+                <p class="text-sm opacity-90">Your Interests</p>
+                <p class="text-lg font-bold">{{ user_interests|join:", " }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Upload Card -->
+        <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+            <h3 class="text-xl font-semibold mb-4">Upload New PDF</h3>
+            <p class="text-gray-600 mb-4">Transform your PDF into a beautiful story format</p>
+            <a href="{% url 'upload_document' %}" class="inline-flex items-center bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition duration-200">
+                📄 Upload PDF
+            </a>
+        </div>
+
+        <!-- AI Features Card -->
+        <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+            <h3 class="text-xl font-semibold mb-4">AI Personalization</h3>
+            <p class="text-gray-600 mb-4">Based on your interests: <strong>{{ user_interests|join:", " }}</strong></p>
+            <div class="space-y-2 text-sm text-purple-600">
+                <div>✨ Personalized content recommendations</div>
+                <div>🤖 Smart summarization based on your interests</div>
+                <div>🎯 Reading suggestions tailored for you</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Documents -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <h3 class="text-xl font-semibold mb-4">Recent Documents</h3>
+        {% if recent_documents %}
+            <div class="space-y-4">
+                {% for doc in recent_documents %}
+                <div class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition duration-200">
+                    <div>
+                        <h4 class="font-medium">{{ doc.title }}</h4>
+                        <p class="text-sm text-gray-600">{{ doc.chunks.count }} chunks • {{ doc.file_size|filesizeformat }}</p>
+                    </div>
+                    <a href="{% url 'read_document' doc.id %}" class="bg-purple-100 text-purple-600 px-4 py-2 rounded-lg hover:bg-purple-200 transition duration-200">
+                        Continue Reading
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <p class="text-gray-500">No documents yet. Upload your first PDF to get started!</p>
+                <a href="{% url 'upload_document' %}" class="inline-block mt-4 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">
+                    Upload First PDF
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

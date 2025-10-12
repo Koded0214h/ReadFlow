@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Documents API - ReadFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto py-8 px-4">
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="mb-6">
+            <a href="{% url 'test_dashboard' %}" class="text-purple-600 hover:text-purple-800 inline-flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Test Dashboard
+            </a>
+        </div>
+
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Test Documents API</h1>
+
+        {% if not user.is_authenticated %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">Authentication Required</h3>
+                    <div class="mt-2 text-sm text-yellow-700">
+                        <p>You need to be logged in to test the documents API. Please <a href="{% url 'test_login' %}" class="font-medium underline text-yellow-700 hover:text-yellow-600">login first</a>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+
+        <!-- Token Status -->
+        <div class="mb-6 bg-gray-50 rounded-md p-4">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">JWT Token Status</h3>
+            <p class="text-sm text-gray-600">
+                <span class="font-medium">Access Token:</span>
+                <span id="tokenStatus" class="font-mono text-xs">
+                    {% if request.session.access_token %}Present{% else %}Not found{% endif %}
+                </span>
+            </p>
+            <button id="viewTokenBtn" class="mt-2 text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700">View Token</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- API Operations -->
+            <div>
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">API Operations</h2>
+
+                <!-- List Documents -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">List Documents</h3>
+                    <button id="listDocumentsBtn" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        GET /api/documents/
+                    </button>
+                </div>
+
+                <!-- Upload Document -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Upload Document</h3>
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="mb-2">
+                            <input type="text" id="uploadTitle" placeholder="Document title (optional)" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-2">
+                            <input type="file" id="uploadFile" accept=".pdf" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        <button type="submit" id="uploadBtn" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            POST /api/documents/
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Get Single Document -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Get Single Document</h3>
+                    <div class="flex space-x-2">
+                        <input type="number" id="documentId" placeholder="Document ID" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <button id="getDocumentBtn" class="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            GET /api/documents/{id}/
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Update Document -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Update Document</h3>
+                    <div class="space-y-2">
+                        <input type="number" id="updateDocId" placeholder="Document ID" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <input type="text" id="updateTitle" placeholder="New title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <button id="updateDocumentBtn" class="w-full bg-yellow-600 text-white py-2 px-4 rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            PUT /api/documents/{id}/
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Delete Document -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Delete Document</h3>
+                    <div class="flex space-x-2">
+                        <input type="number" id="deleteDocId" placeholder="Document ID" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <button id="deleteDocumentBtn" class="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            DELETE /api/documents/{id}/
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Response -->
+            <div>
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">API Response</h2>
+
+                <div id="responseContainer" class="hidden">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">Status: <span id="responseStatus" class="font-mono"></span></h3>
+                        <div class="bg-gray-100 rounded-md p-4 max-h-96 overflow-y-auto">
+                            <pre id="responseData" class="text-sm text-gray-800 whitespace-pre-wrap font-mono"></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loadingSpinner" class="hidden flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                    <span class="ml-2 text-gray-600">Sending request...</span>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% if user.is_authenticated %}
+<script>
+// Helper function to get auth headers
+function getAuthHeaders() {
+    const accessToken = localStorage.getItem('access_token');
+    return {
+        'Authorization': `Bearer ${accessToken}`,
+    };
+}
+
+// Helper function to make API request
+async function makeRequest(url, options = {}) {
+    const responseContainer = document.getElementById('responseContainer');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    // Show loading
+    loadingSpinner.classList.remove('hidden');
+    responseContainer.classList.add('hidden');
+
+    try {
+        const response = await fetch(url, {
+            headers: getAuthHeaders(),
+            ...options
+        });
+
+        let responseData;
+        try {
+            responseData = await response.json();
+        } catch (e) {
+            responseData = { message: 'No JSON response' };
+        }
+
+        // Hide loading
+        loadingSpinner.classList.add('hidden');
+
+        // Show response
+        responseContainer.classList.remove('hidden');
+        document.getElementById('responseStatus').textContent = `${response.status} ${response.statusText}`;
+        document.getElementById('responseData').textContent = JSON.stringify(responseData, null, 2);
+
+        // Color code status
+        const statusElement = document.getElementById('responseStatus');
+        if (response.ok) {
+            statusElement.className = 'font-mono text-green-600';
+        } else {
+            statusElement.className = 'font-mono text-red-600';
+        }
+
+        return { response, data: responseData };
+    } catch (error) {
+        loadingSpinner.classList.add('hidden');
+        responseContainer.classList.remove('hidden');
+        document.getElementById('responseStatus').textContent = 'Network Error';
+        document.getElementById('responseStatus').className = 'font-mono text-red-600';
+        document.getElementById('responseData').textContent = `Error: ${error.message}`;
+        throw error;
+    }
+}
+
+// List Documents
+document.getElementById('listDocumentsBtn').addEventListener('click', async function() {
+    await makeRequest('/api/documents/');
+});
+
+// Upload Document
+document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const title = document.getElementById('uploadTitle').value;
+    const file = document.getElementById('uploadFile').files[0];
+
+    if (!file) {
+        alert('Please select a file');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    if (title) {
+        formData.append('title', title);
+    }
+
+    await makeRequest('/api/documents/', {
+        method: 'POST',
+        body: formData
+    });
+});
+
+// Get Single Document
+document.getElementById('getDocumentBtn').addEventListener('click', async function() {
+    const docId = document.getElementById('documentId').value;
+    if (!docId) {
+        alert('Please enter a document ID');
+        return;
+    }
+    await makeRequest(`/api/documents/${docId}/`);
+});
+
+// Update Document
+document.getElementById('updateDocumentBtn').addEventListener('click', async function() {
+    const docId = document.getElementById('updateDocId').value;
+    const title = document.getElementById('updateTitle').value;
+
+    if (!docId || !title) {
+        alert('Please enter both document ID and new title');
+        return;
+    }
+
+    await makeRequest(`/api/documents/${docId}/`, {
+        method: 'PUT',
+        headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title })
+    });
+});
+
+// Delete Document
+document.getElementById('deleteDocumentBtn').addEventListener('click', async function() {
+    const docId = document.getElementById('deleteDocId').value;
+    if (!docId) {
+        alert('Please enter a document ID');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this document?')) {
+        return;
+    }
+
+    await makeRequest(`/api/documents/${docId}/`, {
+        method: 'DELETE'
+    });
+});
+
+// View token functionality
+document.getElementById('viewTokenBtn').addEventListener('click', function() {
+    const accessToken = localStorage.getItem('access_token');
+    const refreshToken = localStorage.getItem('refresh_token');
+
+    if (accessToken) {
+        alert(`Access Token: ${accessToken}\n\nRefresh Token: ${refreshToken || 'Not available'}`);
+    } else {
+        alert('No tokens stored. Please login first.');
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

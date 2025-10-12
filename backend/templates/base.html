@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ReadFlow - PDF to Story Reader{% endblock %}</title>
+    
+    <!-- Tailwind CSS CDN for beautiful styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        .story-chunk {
+            transition: all 0.3s ease;
+        }
+        .story-chunk:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .reading-progress {
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-purple-600">📖 ReadFlow</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        <span class="text-gray-700">Welcome, {{ user.username }}!</span>
+                        <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-purple-600">Dashboard</a>
+                        <a href="{% url 'library' %}" class="text-gray-600 hover:text-purple-600">My Library</a>
+                        <a href="{% url 'logout' %}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Logout</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-gray-600 hover:text-purple-600">Login</a>
+                        <a href="{% url 'register' %}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-12">
+        <div class="max-w-7xl mx-auto py-8 px-4">
+            <p class="text-center text-gray-600">© 2025 ReadFlow. Transform your PDFs into beautiful stories.</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>

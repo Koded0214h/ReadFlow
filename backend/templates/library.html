@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}My Library - ReadFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">My Library</h2>
+
+        <div class="mb-6">
+            <a href="{% url 'upload_document' %}" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 inline-flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Upload New Document
+            </a>
+        </div>
+
+        {% if documents %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for document in documents %}
+                <div class="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:shadow-lg transition-shadow">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ document.title }}</h3>
+                            <p class="text-sm text-gray-600 mb-2">Uploaded: {{ document.uploaded_at|date:"M d, Y" }}</p>
+                            <p class="text-sm text-gray-600 mb-2">Status: <span class="{% if document.status == 'processed' %}text-green-600{% elif document.status == 'processing' %}text-yellow-600{% else %}text-red-600{% endif %}">{{ document.status|title }}</span></p>
+                            <p class="text-sm text-gray-600">Size: {{ document.file_size|filesizeformat }}</p>
+                        </div>
+                        <div class="ml-4">
+                            <svg class="w-12 h-12 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <a href="{% url 'read_document' document.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">Read</a>
+                        <button class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm">Download</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <svg class="w-24 h-24 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">No documents yet</h3>
+                <p class="text-gray-500 mb-6">Upload your first PDF to start reading!</p>
+                <a href="{% url 'upload_document' %}" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">Upload Document</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
