@@ -1,3 +1,4 @@
+from datetime import timezone
 import os
 import pdfplumber
 from django.core.files.base import ContentFile
@@ -8,24 +9,22 @@ class PDFProcessor:
         self.document_id = document_id
         self.document = Document.objects.get(id=document_id)
     
+        # In your PDFProcessor
     def process_document(self):
-        """Main processing pipeline"""
         try:
             self.document.status = Document.PROCESSING
             self.document.save()
             
-            # Extract text and structure
             chunks = self.extract_content()
-            
-            # Create chunk records
             self.create_chunks(chunks)
             
-            # Update document status
+            # Refresh the document to ensure we have the latest version
+            self.document.refresh_from_db()
             self.document.status = Document.COMPLETED
+            self.document.processed_at = timezone.now()  # Add this import
             self.document.save()
             
             return True
-            
         except Exception as e:
             self.document.status = Document.FAILED
             self.document.save()
