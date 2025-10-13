@@ -39,8 +39,6 @@ INSTALLED_APPS = [
     'corsheaders',
     
     'users',
-    'services',
-    'reading',
     'documents',
     'core',
     
