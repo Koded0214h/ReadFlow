@@ -31,3 +31,6 @@
 - [x] Run the server and test each endpoint via the HTML forms
 - [x] Ensure JWT authentication works across pages
 - [x] Fix any issues found during testing
+
+
+edit the prompts and fallback text to me be more human like..
